@@ -653,12 +653,29 @@ class Departament
         }
         friend void Adaugare_medic(Departament &d, Medic &m);
         friend void Eliminare_medic(Departament &d, Medic &m);
-        friend double Medie_salariu(Departament&d);
-        friend void Marire_salariu(Departament&d);
         ~Departament()
         {
             delete[] medici;
             medici=nullptr;
+        }
+        void Marire_salariu()
+        {
+            int i;
+            for(i=0;i<nr_medici;i++)
+            {
+                double salariu_nou=medici[i].getSalariu()+(medici[i].getSalariu())* 10/100;
+                medici[i].setSalariu(salariu_nou);
+            }
+        }
+        Medie_salariu()
+        {
+            int i;
+            double sum=0;
+            for(i=0;i<nr_medici;i++)
+                sum=sum+medici[i].getSalariu();
+            sum=sum/nr_medici;
+            return sum;
+
         }
 };
 
@@ -704,26 +721,6 @@ void Eliminare_medic(Departament &d, Medic &m)
                 }
             }
         }
-double Medie_salariu(Departament &d)
-{
-    int i;
-    double sum=0;
-    for(i=0;i<d.nr_medici;i++)
-        sum=sum+d.medici[i].getSalariu();
-    sum=sum/d.nr_medici;
-    return sum;
-}
-
-void Marire_salariu(Departament &d)
-{
-    int i;
-    for(i=0;i<d.nr_medici;i++)
-    {
-        double salariu_nou=d.medici[i].getSalariu()+(d.medici[i].getSalariu())* 10/100;
-        d.medici[i].setSalariu(salariu_nou);
-    }
-}
-
 
 int main()
 {
@@ -738,9 +735,9 @@ int main()
     Adaugare_medic(dermatologie, m3);
     Adaugare_medic(dermatologie, m4);
     Adaugare_medic(dermatologie, m5);
-    cout<<"Medie salariu dermatologie:"<<Medie_salariu(dermatologie)<<"\n";
-    Marire_salariu(dermatologie);
-    cout<<"Medie salariu dermatologie dupa marire:"<<Medie_salariu(dermatologie)<<"\n";
+    cout<<"Medie salariu dermatologie:"<<dermatologie.Medie_salariu()<<"\n";
+    dermatologie.Marire_salariu();
+    cout<<"Medie salariu dermatologie dupa marire:"<<dermatologie.Medie_salariu()<<"\n";
     cout<<"Numarul de medici de la dermatologie este:"<<dermatologie.getNr_medici()<<"\n";
     Eliminare_medic(dermatologie, m5);
     cout<<"Numarul de medici de la dermatologie nou este:"<<dermatologie.getNr_medici()<<"\n";
@@ -750,7 +747,7 @@ int main()
     Adaugare_medic(oftalmologie, m6);
     Adaugare_medic(oftalmologie, m7);
     Adaugare_medic(oftalmologie, m8);
-    cout<<"Medie salariu oftalmologie:"<<Medie_salariu(oftalmologie)<<"\n";
+    cout<<"Medie salariu oftalmologie:"<<oftalmologie.Medie_salariu()<<"\n";
     Medic m9("Marcu", "Matei", "009", "masculin", "0788888676", 50, "pediatrie", "specialist", 6000);
     Medic m10;
     m10.setNume("Aleca");
