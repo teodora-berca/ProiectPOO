@@ -2,6 +2,8 @@
 1679758116 source:d:\informatica\ani_semii_poo_proiect\main.cpp
 	<iostream>
 
-1679854579 source:d:\github\proiectpoo\main.cpp
+1683057486 source:d:\github\proiectpoo\main.cpp
 	<iostream>
+	<vector>
+	<exception>
 
