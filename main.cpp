@@ -48,10 +48,9 @@ class Gestiune
         }
         int Cautare(T x)
         {
-            int semafor=0;
-            for(auto it=v.begin();it!=v.end()&&semafor!=1;it++)
-                if((*it)==x)
-                    return 1;
+            auto it = find(v.begin(), v.end(), x);
+            if(it!=v.end())
+                return 1;
             return 0;
         }
         void Stergere(T x)
