@@ -1,8 +1,73 @@
 #include <iostream>
+#include <memory>
+#include <random>
 #include <vector>
-#include <exception>
+#include <algorithm>
 
 using namespace std;
+
+class Clinica
+{
+    private:
+        Clinica() {}
+        static Clinica _clinica;
+        string Nume="Clinica";
+    public:
+        Clinica(const Clinica&) = delete;
+        static Clinica& get_clinica()
+        {
+            return _clinica;
+        }
+        string NumeClinica()
+        {
+            return Nume;
+        }
+};
+
+Clinica Clinica::_clinica;
+
+
+template<typename T>
+class Gestiune
+{
+    private:
+        vector<T> v;
+    public:
+        void Construire(vector<T> aux)
+        {
+            for(auto i=aux.begin();i!=aux.end();i++)
+            {
+                v.push_back(*i);
+            }
+        }
+        void Afisare()
+        {
+            for(auto it=v.begin();it!=v.end();it++)
+                cout<<(**it)<<" ";
+            cout<<"\n";
+        }
+        int Cautare(T x)
+        {
+            int semafor=0;
+            for(auto it=v.begin();it!=v.end()&&semafor!=1;it++)
+                if((*it)==x)
+                    return 1;
+            return 0;
+        }
+        void Stergere(T x)
+        {
+            int semafor=0;
+            for(auto it=v.begin();it!=v.end()&&semafor!=1;it++)
+                if((*it)==x)
+                {
+                    v.erase(it);
+                    semafor=1;
+                }
+            if(semafor==0)
+                cout<<"Valoarea cautata nu este inregistrata."<<"\n";
+        }
+
+};
 
 class Afisare
 {
@@ -85,13 +150,6 @@ class Cadru_medical
             Salariu=salariu;
         }
         //////////////alte metode/////////////////////
-        virtual void Spor_tura_noapte()
-        {
-            if(Tura_noapte=="da")
-                cout<<"Cadrul medical cu codul "<<Cod<<" lucreaza in tura de noapte, deci primeste un spor de 10% daca este asistent medical si de 20% daca este medic"<<"\n";
-            else
-                cout<<"Cadrul medical cu codul "<<Cod<<" nu lucreaza in tura de noapte"<<"\n";
-        }
         virtual void Marire_salariu()
         {
             if(Ani_vechime%5==0)
@@ -102,6 +160,7 @@ class Cadru_medical
         virtual ~Cadru_medical() {}
 };
 
+
 class Persoana
 {
     protected:
@@ -110,7 +169,6 @@ class Persoana
         string Sex;
         int Varsta;
     public:
-        /////////////getteri//////////////
         string getNume() const
         {
             return Nume;
@@ -127,7 +185,6 @@ class Persoana
         {
             return Varsta;
         }
-        ///////////setteri////////////////
         void setNume(string nume)
         {
             Nume=nume;
@@ -146,14 +203,12 @@ class Persoana
                 throw "Nu se poate inregistra aceasta varsta";
             Varsta=varsta;
         }
-        /////////////constructori//////////
         Persoana() : Nume("nume"), Prenume("prenume"), Sex("sex"), Varsta(0){}
         Persoana(string nume, string prenume, string sex, int varsta) : Nume(nume), Prenume(prenume), Sex(sex)
         {
             if(varsta<0)
                 throw "Nu se poate inregistra aceasta varsta";
         }
-        ////////////alte metode////////////
         virtual void Afisare_profil()
         {
             cout<<"Nume:"<<Nume<<" Prenume:"<<Prenume<<" Sex:"<<Sex<<" Varsta:"<<Varsta<<"\n";
@@ -204,7 +259,6 @@ class Medic : public Cadru_medical, public Persoana
             Grad=grad;
             n++;
             suma=suma+Salariu;
-            cout<<"Medic inregistrat!"<<"\n";
         }
         //////metode//////////
         bool operator ==(const Medic &m) const
@@ -230,16 +284,6 @@ class Medic : public Cadru_medical, public Persoana
         {
             cout<<"Nume:"<<Nume<<" Prenume:"<<Prenume<<" Cod:"<<Cod<<" Sex:"<<Sex<<" Varsta:"<<Varsta<<" Specialitate:"<<Specialitate<<" Grad:"<<Grad<<"\n";
         }
-        void Spor_tura_noapte()
-        {
-            if(Tura_noapte=="da")
-                {
-                    double spor=Salariu*20/100;
-                    cout<<"Medicul "<<Nume<<" "<<Prenume<<" are un spor de "<<spor<<"\n";
-                }
-            else
-                cout<<"Medicul "<<Nume<<" "<<Prenume<<" nu lucreaza in tura de noapte"<<"\n";
-        }
         void Marire_salariu()
         {
             if(Ani_vechime%5==0)
@@ -252,9 +296,9 @@ class Medic : public Cadru_medical, public Persoana
                 cout<<"Salariul nu se mareste"<<"\n";
         }
         //////metode statice//////
-        static void Numar_medici()
+        static int Numar_medici()
         {
-            cout<<"Numar medici:"<<n<<"\n";
+            return n;
         }
         static void Medie_salarii()
         {
@@ -262,12 +306,19 @@ class Medic : public Cadru_medical, public Persoana
             cout<<medie<<"\n";
         }
         ~Medic() {}
+        friend ostream & operator << (ostream &out, const Medic &m);
 
 };
 
 int Medic::n=0;
 int Medic::suma=0;
 double Medic::medie=0;
+
+ostream & operator << (ostream & out, const Medic &m)
+{
+    out<<"Nume:"<<m.Nume<<" "<<m.Prenume<<"\n";
+    return out;
+}
 
 class Asistent_medical : protected Cadru_medical, public Persoana
 {
@@ -309,16 +360,6 @@ class Asistent_medical : protected Cadru_medical, public Persoana
         {
             cout<<"Nume:"<<Nume<<" Prenume:"<<Prenume<<" Varsta:"<<Varsta<<" Grad:"<<Grad<<"\n";
         }
-        void Spor_tura_noapte()
-        {
-            if(Tura_noapte=="da")
-                {
-                    double spor=Salariu*10/100;
-                    cout<<"Asistentul medical "<<Nume<<" "<<Prenume<<" are un spor de "<<spor<<"\n";
-                }
-            else
-                cout<<"Asistentul medical "<<Nume<<" "<<Prenume<<" nu lucreaza in tura de noapte"<<"\n";
-        }
         void Marire_salariu()
         {
             if(Ani_vechime%5==0)
@@ -334,22 +375,24 @@ class Asistent_medical : protected Cadru_medical, public Persoana
 
 };
 
+
 class Pacient : public Persoana
 {
     private:
         string Telefon;
-        string Cod;
         string Asigurare_medicala;
         string Abonament;
         double Greutate;
         double Inaltime;
+        int Cod;
+        static vector<int> coduri;
     public:
         ///////getteri////////
         string getTelefon() const
         {
             return Telefon;
         }
-        string getCod() const
+        int getCod() const
         {
             return Cod;
         }
@@ -369,12 +412,17 @@ class Pacient : public Persoana
         {
             return Inaltime;
         }
+        static void Afis_cod()
+        {
+            for(auto i=coduri.begin();i!=coduri.end();i++)
+                cout<<(*i)<<" ";
+        }
         /////setteri///////
         void setTelefon(string telefon)
         {
             Telefon=telefon;
         }
-        void setCod(string cod)
+        void setCod(int cod)
         {
             Cod=cod;
         }
@@ -398,22 +446,37 @@ class Pacient : public Persoana
         Pacient() : Persoana()
         {
             Telefon="telefon";
-            Cod="cod";
+            Cod=0;
             Asigurare_medicala="asigurare_medicala";
             Abonament="abonament";
             Greutate=0;
             Inaltime=0;
         }
-        Pacient(string nume, string prenume, string sex, int varsta, string telefon, string cod, string asigurare_medicala, string abonament, double greutate, double inaltime)
+        Pacient(string nume, string prenume, string sex, int varsta, string telefon, string asigurare_medicala, string abonament, double greutate, double inaltime)
         : Persoana(nume, prenume, sex, varsta)
         {
             Telefon=telefon;
-            Cod=cod;
             Asigurare_medicala=asigurare_medicala;
             Abonament=abonament;
             Greutate=greutate;
             Inaltime=inaltime;
-            cout<<"Pacientul a fost inregistrat!"<<"\n";
+            std::random_device rd;
+            std::uniform_int_distribution<int> dist(1,10000);
+            int sem=0;
+            while(sem==0)
+            {
+                int aux=1;
+                int nr=dist(rd);
+                for(auto i=coduri.begin();i!=coduri.end();i++)
+                    if(nr==(*i))
+                        aux=0;
+                if(aux==1)
+                    {
+                        sem=1;
+                        coduri.push_back(nr);
+                        Cod=nr;
+                    }
+            }
         }
         ///////alte metode//////
         bool Verif_asig()
@@ -447,8 +510,14 @@ class Pacient : public Persoana
         {
             cout<<"Nume:"<<Nume<<" Prenume:"<<Prenume<<" Cod:"<<Cod<<" Asigurare medicala:"<<Asigurare_medicala<<" Abonament:"<<Abonament<<"\n";
         }
+        static void Sortare_coduri()
+        {
+            std::sort(coduri.begin(),coduri.end());
+        }
         ~Pacient() {}
 };
+
+vector<int> Pacient::coduri;
 
 class Medic_existent : public exception
 {
@@ -580,11 +649,11 @@ class Cabinet : public Salon
         {
             if(Viz==10000)
                 {
-                    cout<<"Cabinetul are nevoie de renovari";
+                    cout<<"Cabinetul are nevoie de renovari"<<"\n";
                     Viz=0;
                 }
             else
-                cout<<"Cabinetul nu are nevoie de renovari";
+                cout<<"Cabinetul nu are nevoie de renovari"<<"\n";
         }
         void Descriere_utilizare()
         {
@@ -647,11 +716,11 @@ class Sala_internare : public Salon
         {
             if(Viz==100)
                 {
-                    cout<<"Cabinetul are nevoie de renovari";
+                    cout<<"Salonul are nevoie de renovari"<<"\n";
                     Viz=0;
                 }
             else
-                cout<<"Cabinetul nu are nevoie de renovari";
+                cout<<"Salonul nu are nevoie de renovari"<<"\n";
         }
         void Descriere_utilizare()
         {
@@ -847,273 +916,192 @@ class Analize_medicale : public Vizita_medicala
 class Departament : public Afisare
 {
     private:
-        int nr_medici;
-        Medic* medici;
+        vector<Medic>medici;
     public:
-        Departament()
-        {
-            medici=NULL;
-            nr_medici=0;
-        }
-        Departament(int numar,string denumire)
-        {
-            nr_medici=numar;
-            medici=new Medic[nr_medici];
-        }
         int getNr_medici() const
         {
-            return nr_medici;
-        }
-        Departament(const Departament &d)
-        {
-            nr_medici=d.nr_medici;
-            for(int i=0;i<nr_medici;i++)
-                medici[i]=d.medici[i];
+            return medici.size();
         }
         ~Departament()
         {
-            if(medici!=NULL)
-            {
-                delete[] medici;
-                medici=nullptr;
-            }
         }
         void Marire_salariu()
         {
-            int i;
-            for(i=0;i<nr_medici;i++)
+            for(auto i=medici.begin();i!=medici.end();i++)
             {
-                double salariu_nou=medici[i].getSalariu()+(medici[i].getSalariu())* 10/100;
-                medici[i].setSalariu(salariu_nou);
+                double salariu_nou=(*i).getSalariu()+((*i).getSalariu()*10/100);
+                (*i).setSalariu(salariu_nou);
             }
         }
-        Medie_salariu()
+        double Medie_salariu()
         {
-            int i;
             double sum=0;
-            for(i=0;i<nr_medici;i++)
-                sum=sum+medici[i].getSalariu();
-            sum=sum/nr_medici;
+            for(auto i=medici.begin();i!=medici.end();i++)
+            {
+                sum=sum+(*i).getSalariu();
+            }
+            sum=sum/medici.size();
             return sum;
 
         }
-        void Adaugare_medic(Departament &d, Medic &m)
+        void Adaugare_medic(Medic m)
          {
-            if(d.medici==NULL)
+            for(auto i=medici.begin();i!=medici.end();i++)
             {
-                d.nr_medici=1;
-                d.medici=new Medic[1];
-                d.medici[0]=m;
+                if(*i==m)
+                    {
+                        Medic_existent* medic=new Medic_existent();
+                        medic->setNume_medic(m.getNume());
+                        throw medic;
+                    }
             }
-            else
-            {
-                int i;
-                for(i=0;i<d.nr_medici;i++)
-                    if(medici[i]==m)
-                        throw "Medicul a fost deja inregistrat";
-                d.nr_medici=d.nr_medici+1;
-                Medic* aux;
-                aux= new Medic[d.nr_medici];
-                for(i=0;i<d.nr_medici-1;i++)
-                    aux[i]=d.medici[i];
-                aux[i]=m;
-                delete[] d.medici;
-                d.medici=aux;
-            }
-        }
-        void Eliminare_medic(Departament &d, Medic &m)
+            medici.push_back(m);
+         }
+        void Eliminare_medic(Medic m)
         {
-            int semafor=0, i, j;
-            if(d.nr_medici>=1)
+            int semafor=0;
+            if(medici.size()>=1)
             {
-                for(i=0; i<d.nr_medici && semafor==0;i++)
-                    if(d.medici[i]==m)
+                for(auto i=medici.begin();i!=medici.end()&&semafor==0;i++)
                 {
-                    semafor=1;
-                    Medic* aux;
-                    d.nr_medici=d.nr_medici-1;
-                    aux=new Medic[d.nr_medici];
-                    for(j=0;j<i;j++)
-                        aux[j]=d.medici[j];
-                    for(j=i;j<=d.nr_medici-1;j++)
-                        aux[j]=d.medici[j+1];
-                    delete[] d.medici;
-                    d.medici=aux;
+                    if(*i==m)
+                    {
+                        medici.erase(i);
+                        semafor=1;
+                    }
                 }
             }
         }
-        string getClassName()
+        void Afisare_medici()
+        {
+            for(auto i=medici.begin();i!=medici.end();i++)
+                cout<<(*i).getNume()<<"\n";
+        }
+        string getClassName() override
         {
             return "Departament";
         }
-        void AfisareDate()
+        void AfisareDate() override
         {
-            cout<<"In departament lucreaza "<<nr_medici<<" medici."<<"\n";
+            cout<<"In departament lucreaza "<<medici.size()<<" medici."<<"\n";
         }
 };
 
-
+template<typename T>
+void eliberare_memorie(vector<T*>&v)
+{
+    for(auto it=v.begin();it!=v.end();it++)
+        {
+            delete *it;
+        }
+    v.clear();
+}
+template<>
+void eliberare_memorie(vector<Medic*>&v)
+{
+    for(auto it=v.begin();it!=v.end();it++)
+        {
+            (**it).setTura_noapte("liber");
+        }
+    v.clear();
+}
 
 int main()
 {
-    ////////constructori/////////
-    Asistent_medical a1("21","0786876765","@",3500,"Alecu","Ruxandra","feminin",45,"avansat","da",20);
-    Asistent_medical a2("22","0712432565","@",3000,"Aleca","Tudor","masculin",35,"experimentat","nu",12);
-    Medic m1("001","0711111111","@",4000,"Aron","Marta","feminin",40,"oftalmologie","specialist","nu",10);
-    Medic m2("002","0788888888","@",4500,"Marcu","Maria","feminin",30,"oftalmologie","specialist","da",5);
-    Medic m3("003","0799999999","@",5000,"Pavel","Iuliana","feminin",55,"dermatologie","specialist","da",15);
-    Medic m4("004","0722222222","@",6000,"Matei","Pavel","masculin",28,"dermatologie","specialist","da",3);
-    Medic m5("005","0733333333","@",3000,"Barbu","Alexandru","masculin",39,"pediatrie","primar","da",17);
-    Medic m6("006","0744444444","@",4400,"Constantin","Diana","feminin",35,"pediatrie","specialist","nu",5);
-    Medic m7("007","0755555555","@",5000,"Sandu","Raluca","feminin",47,"chirurgie","specialist","da",20);
-    Medic m8("008","0766666666","@",5500,"Alecu","Cristian","masculin",57,"chirurgie","specialist","da",20);
-    Medic m9("009","0777777777","@",3500,"Moise","Tania","feminin",34,"infectioase","primar","nu",7);
-    Medic m10("010","0723333333","@",6500,"Eni","Bogdan","masculin",60,"infectioase","specialist","nu",25);
-    Medic::Numar_medici();
-    Medic::Medie_salarii();
-    ////////try...catch/////////////
-    try
+    ///singleton
+    cout<<Clinica::get_clinica().NumeClinica()<<"\n";
+    ///evidentiere random prin generare de coduri distincte pentru pacienti
+    Pacient p1("Andrei", "Maria", "feminin",20, "0766666654", "asigurat", "neabonat", 50, 1.60);
+    Pacient p2("Busoi", "Alexandru", "masculin",39, "0755446565", "neasigurat", "abonat", 80, 1.70);
+    Pacient p3("Marcu", "Iulia", "feminin",40, "0744342343", "asigurat", "abonat", 45, 1.55);
+    Pacient p4("Iliescu", "Tania", "feminin",35, "0765334234", "asigurat", "neabonat", 70, 1.65);
+    Pacient p5("Zarnescu","Matei","masculin",60,"0788987656","asigurat","neabonat",0,0);
+    Pacient p6("Mircea","Diana","feminin",39,"0756453423","neasigurat","abonat",0,0);
+    cout<<p1.getCod()<<"\n";
+    cout<<p2.getCod()<<"\n";
+    cout<<p3.getCod()<<"\n";
+    cout<<p4.getCod()<<"\n";
+    cout<<p5.getCod()<<"\n";
+    cout<<p6.getCod()<<"\n";
+    Pacient::Afis_cod();
+    cout<<"\n";
+    Pacient::Sortare_coduri();
+    Pacient::Afis_cod();
+    cout<<"\n";
+    ///smart pointers
+    ///unique pointers
+    vector<unique_ptr<Pacient>> pacienti;
+    pacienti.emplace_back(make_unique<Pacient>(p1));
+    pacienti.emplace_back(make_unique<Pacient>(p2));
+    pacienti.emplace_back(make_unique<Pacient>(p3));
+    pacienti.emplace_back(make_unique<Pacient>(p4));
+    pacienti.emplace_back(make_unique<Pacient>(p5));
+    for(auto i=pacienti.begin();i!=pacienti.end();i++)
+        cout<<(**i).getNume()<<" ";
+    cout<<"\n";
+    ///shared pointers
+    Cabinet c1("Dermatologie",5,100,50);
+    Cabinet c2("Oftalmologie",10,200,300);
+    Cabinet c3("Pediatrie",8,100,100);
+    Cabinet c4("Cardiologie",7,200,200);
+    Cabinet c5("Medicina_interna",10,100,150);
+    Sala_internare si1("Cardiologie",3,100,200,10,200,300);
+    Sala_internare si2("Cardiologie",2,150,300,15,200,300);
+    Sala_internare si3("Medicina_interna",2,175,200,5,300,300);
+    Sala_internare si4("Medicina_interna",1,100,300,10,250,250);
+    Sala_internare si5("Oftalmologie",3,75,100,5,300,300);
+    vector<shared_ptr<Salon>> saloane;
+    saloane.emplace_back(make_shared<Cabinet>(c1));
+    saloane.emplace_back(make_shared<Cabinet>(c2));
+    saloane.emplace_back(make_shared<Cabinet>(c3));
+    saloane.emplace_back(make_shared<Cabinet>(c4));
+    saloane.emplace_back(make_shared<Cabinet>(c5));
+    saloane.emplace_back(make_shared<Sala_internare>(si1));
+    saloane.emplace_back(make_shared<Sala_internare>(si2));
+    saloane.emplace_back(make_shared<Sala_internare>(si3));
+    saloane.emplace_back(make_shared<Sala_internare>(si4));
+    saloane.emplace_back(make_shared<Sala_internare>(si5));
+    for(auto i=saloane.begin();i!=saloane.end();i++)
     {
-        Medic m11("011","0754365789","@",-100,"Darius","Darian","masculin",56,"infectioase","specialist","nu",30);
+        cout<<(**i).Calcul_intretinere()<<"\n";
+        (**i).Renovari();
     }
-    catch(const char* exceptie)
+    ///template
+    Medic m1("001","0711111111","@",4000,"Aron","Marta","feminin",40,"oftalmologie","specialist","liber",10);
+    Medic m2("002","0788888888","@",4500,"Marcu","Maria","feminin",30,"oftalmologie","specialist","liber",5);
+    Medic m3("003","0799999999","@",5000,"Pavel","Iuliana","feminin",55,"dermatologie","specialist","liber",15);
+    Medic m4("004","0722222222","@",6000,"Matei","Pavel","masculin",28,"dermatologie","specialist","liber",3);
+    Medic m5("005","0733333333","@",3000,"Barbu","Alexandru","masculin",39,"pediatrie","primar","liber",17);
+    Medic m6("006","0744444444","@",4400,"Constantin","Diana","feminin",35,"pediatrie","specialist","liber",5);
+    Medic m7("007","0755555555","@",5000,"Sandu","Raluca","feminin",47,"chirurgie","specialist","liber",20);
+    Medic m8("008","0766666666","@",5500,"Alecu","Cristian","masculin",57,"chirurgie","specialist","liber",20);
+    Medic m9("009","0777777777","@",3500,"Moise","Tania","feminin",34,"infectioase","primar","liber",7);
+    Medic m10("010","0723333333","@",6500,"Eni","Bogdan","masculin",60,"infectioase","specialist","liber",25);
+    vector<Medic*> medici_tura_noapte;
+    medici_tura_noapte.emplace_back(&m1);
+    medici_tura_noapte.emplace_back(&m2);
+    medici_tura_noapte.emplace_back(&m3);
+    medici_tura_noapte.emplace_back(&m4);
+    medici_tura_noapte.emplace_back(&m5);
+    medici_tura_noapte.emplace_back(&m6);
+    medici_tura_noapte.emplace_back(&m7);
+    medici_tura_noapte.emplace_back(&m8);
+    medici_tura_noapte.emplace_back(&m9);
+    medici_tura_noapte.emplace_back(&m10);
+    for(auto i=medici_tura_noapte.begin();i!=medici_tura_noapte.end();i++)
     {
-        cout<<"Exceptie: "<<exceptie<<"\n";
+        (**i).setTura_noapte("ocupat");
     }
-    //////////constructori///////////
-    Pacient p1("Andrei", "Maria", "feminin",20, "0766666654", "1", "asigurat", "neabonat", 50, 1.60);
-    Pacient p2("Busoi", "Alexandru", "masculin",39, "0755446565", "2", "neasigurat", "abonat", 80, 1.70);
-    Pacient p3("Marcu", "Iulia", "feminin",40, "0744342343", "4", "asigurat", "abonat", 45, 1.55);
-    Pacient p4("Iliescu", "Tania", "feminin",35, "0765334234","5", "asigurat", "neabonat", 70, 1.65);
-    Pacient p5("Zarnescu","Matei","masculin",60,"0788987656","6","asigurat","neabonat",0,0);
-    Pacient p6("Mircea","Diana","feminin",39,"0756453423","7","neasigurat","abonat",0,0);
-    Pacient p7("Mironov","Stefania","feminin",27,"0765676545","8","neasigurat","neabonat",0,0);
-    Pacient p8("Matei","Denisa","feminin",45,"0765643423","9","neasigurat","abonat",50,1.60);
-    Pacient p9("Marinescu","Dana","feminin",60,"0756453423","10","asigurat","neabonat",40,1.50);
-    Pacient p10("Busoiu","Mihaela","feminin",47,"0712233445","11","neasigurat","neabonat",70,1.80);
-    //////////try...catch////////////
-    try
-    {
-        Pacient p11("Calin","Anca","feminin",-1,"0785643765","12","neasigurat","neabonat",70,1.60);
-    }
-    catch(const char* exceptie)
-    {
-        cout<<"Exceptie: "<<exceptie<<"\n";
-    }
-    try
-    {
-        m1.setSalariu(-100);
-    }
-    catch(const char* exceptie)
-    {
-        cout<<"Exceptie: "<<exceptie<<"\n";
-    }
-    try
-    {
-        p1.setVarsta(-1);
-    }
-    catch(const char* exceptie)
-    {
-        cout<<"Exceptie: "<<exceptie<<"\n";
-    }
-    Departament dermatologie;
-    dermatologie.Adaugare_medic(dermatologie, m3);
-    dermatologie.Adaugare_medic(dermatologie, m4);
-    try
-    {
-    dermatologie.Adaugare_medic(dermatologie, m3);
-    }
-    catch(const char* exceptie)
-    {
-        cout<<"Exceptie: "<<exceptie<<"\n";
-    }
-    Cabinet c1("dermatologie",0,100,100);
-    try
-    {
-        Cabinet c2("dermatologie",0,-1,100);
-    }
-    catch(const char* exceptie)
-    {
-        cout<<"Exceptie: "<<exceptie<<"\n";
-    }
-    ///////metode protected////////
-    Cabinet c2("oftalmologie",5,200,300);
-    c2.Adaugare_istoric_medici(m1);
-    c2.Adaugare_istoric_medici(m2);
-    c2.Adaugare_istoric_pacienti(p1);
-    c2.Adaugare_istoric_pacienti(p2);
-    c2.Afisare_istoric();
-    ////////constructori/////////
-    Sala_internare i1("infectioase", 5, 10, 200, 3, 300, 300 );
-    Internare int1("20 mai", "25 mai", 200, 5, m1, i1, p1);
-    Consultatie cons1("20 mai", "8:00", "exemplu1", 100, m1, c2, p2);
-    Analize_medicale an1("20 mai", "7:00", "sange", 150, 1, m1, p4);
-    ///////destructor virtual////////////
-    Cadru_medical *_p1=new Medic();
-    delete _p1;
-    ///////interfata////////////
-    cout<<dermatologie.getClassName()<<"\n";
-    dermatologie.AfisareDate();
-    //////clasa abstracta//////////
-    cout<<c2.Calcul_intretinere()<<"\n";
-    c2.Numar_utilizari();
-    cout<<c2.Proportie_utilizari_costuri()<<"\n";
-    c2.Renovari();
-    c2.Descriere_utilizare();
-    cout<<i1.Calcul_intretinere()<<"\n";
-    i1.Numar_utilizari();
-    cout<<i1.Proportie_utilizari_costuri()<<"\n";
-    i1.Renovari();
-    i1.Descriere_utilizare();
-    ////////////polimorfism la executie////////
-    Vizita_medicala* _p2=&cons1;
-    Vizita_medicala* _p3=&int1;
-    Vizita_medicala* _p4=&an1;
-    _p2->Calcul_pret();
-    _p3->Calcul_pret();
-    _p4->Calcul_pret();
-    Persoana*_p5=&m1;
-    Persoana*_p6=&p1;
-    _p5->Afisare_profil();
-    _p6->Afisare_profil();
-    Cadru_medical* _p7=&m2;
-    _p7->Spor_tura_noapte();
-    Cadru_medical* _p8=&m3;
-    _p8->Marire_salariu();
-    /////upcasting/////
-    Cadru_medical* _p9=new Medic("012","0786765654","@",5500,"Bogdan","Marius","masculin",55,"cardiovasculare","specialist","da",30);
-    _p9->Spor_tura_noapte();
-    Persoana* _p10=new Medic("013","0786546745","@",5500,"Andrei","Marius","masculin",60,"cardiovasculare","specialist","da",32);
-    _p10->Afisare_profil();
-    Vizita_medicala* _p11=new Consultatie("20 mai", "7:00","bolnav",150,m4,c2,p3);
-    _p11->Calcul_pret();
-    ////downcasting/////
-    Salon* _p13=new Cabinet();
-    Salon* _p14=new Sala_internare();
-    Cabinet* _p15=dynamic_cast<Cabinet*>(_p13);
-    if(_p15!=NULL)
-        cout<<"Variabila este de tip cabinet"<<"\n";
+    Gestiune<Medic*> t;
+    t.Construire(medici_tura_noapte);
+    t.Afisare();
+    if(t.Cautare(&m1)==1)
+        cout<<"Medicul lucreaza in tura de noapte"<<"\n";
     else
-        cout<<"Variabila nu este de tip cabinet"<<"\n";
-    Cabinet* _p16=dynamic_cast<Cabinet*>(_p14);
-    if(_p16!=NULL)
-        cout<<"Variabila este de tip cabinet"<<"\n";
-    else
-        cout<<"Variabila nu este de tip cabinet"<<"\n";
-    /////try...catch///////
-    Cabinet cab("s",2,200,200);
-    Medic med("001","0711111111","@",4000,"Aron","Marta","feminin",40,"oftalmologie","specialist","nu",10);
-    cab.Adaugare_istoric_medici(m1);
-    try
-    {
-        cab.Adaugare_istoric_medici(med);
-    }
-    catch(Medic_existent* m)
-    {
-        cout<<"Medicul "<<m->getNume_medic()<<" a fost adaugat deja."<<"\n";
-    }
-
-
+        cout<<"Medicul nu lucreaza in tura de noapte"<<"\n";
+    cout<<m1.getTura_noapte()<<"\n";
+    eliberare_memorie(medici_tura_noapte);
+    cout<<m1.getTura_noapte()<<"\n";
     return 0;
 
 }
